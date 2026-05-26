@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "notebooklm-toolkit"
+version = "0.1.0"
+description = "Python toolkit for automating Google NotebookLM via browser automation"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+dependencies = [
+    "patchright==1.55.2",
+    "python-dotenv==1.0.0",
+    "requests",
+]
+
+[project.scripts]
+notebooklm-auth = "cli.auth:main"
+notebooklm-ask = "cli.ask:main"
+notebooklm-list = "cli.list:main"
+notebooklm-add = "cli.add:main"
+notebooklm-download = "cli.download:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["notebooklm*", "cli*"]
