@@ -85,19 +85,39 @@ python cli/auth.py clear
 
 ## Connecting to Claude Code (the /notebooklm skill)
 
-This repo is designed to work as a Claude Code skill. Claude Code's built-in `/notebooklm` command uses the same browser automation under the hood.
+This repo ships a `SKILL.md` and a `run.py` that make it a drop-in Claude Code skill. Once installed, type `/notebooklm` in Claude Code to query your notebooks directly from the chat interface.
 
 **Install as a skill:**
 
 ```bash
-# Clone to the Claude Code skills directory
-git clone https://github.com/yashk1998/notebooklm-toolkit ~/.claude/skills/notebooklm-toolkit
+# Option 1 — clone directly into the skills directory
+git clone https://github.com/yashk1998/notebooklm-toolkit ~/.claude/skills/notebooklm
 
-# Or symlink an existing clone
+# Option 2 — symlink an existing clone
 ln -s /path/to/notebooklm-toolkit ~/.claude/skills/notebooklm
 ```
 
-The conda env `notebooklm` is the recommended environment — Claude Code's skill runner auto-detects it. Once installed, type `/notebooklm` in Claude Code to query your notebooks directly from the chat interface.
+**Then set up the environment once:**
+
+```bash
+conda create -n notebooklm python=3.13 -y
+conda activate notebooklm
+pip install -r ~/.claude/skills/notebooklm/requirements.txt
+python -m patchright install chromium
+```
+
+**How it works inside Claude Code:**
+
+- `SKILL.md` — the instructions Claude Code reads when `/notebooklm` is invoked (trigger conditions, command reference, follow-up behaviour)
+- `run.py` — the wrapper Claude Code calls; auto-detects the `notebooklm` conda env, falls back to `.venv`, installs deps on first run
+- All commands go through `python run.py cli/<script>.py ...` so the right environment is always used
+
+**Quick test after install:**
+
+```bash
+python run.py cli/auth.py status
+python run.py cli/list.py
+```
 
 ---
 
@@ -245,6 +265,8 @@ Set `DATA_DIR` in `.env` to store data elsewhere.
 
 ```
 notebooklm-toolkit/
+├── SKILL.md             # Claude Code skill instructions (/notebooklm trigger)
+├── run.py               # Universal runner — auto-detects conda/venv, runs cli/ scripts
 ├── notebooklm/          # Main package
 │   ├── __init__.py      # Public API exports
 │   ├── config.py        # Paths, selectors, browser args
@@ -254,12 +276,12 @@ notebooklm-toolkit/
 │   ├── query.py         # ask_notebooklm()
 │   ├── discovery.py     # list_notebooks_from_web()
 │   └── download.py      # download_all_media()
-├── cli/                 # Thin CLI wrappers
-│   ├── auth.py
-│   ├── ask.py
-│   ├── list.py
-│   ├── add.py
-│   └── download.py
+├── cli/                 # Thin CLI wrappers (always call via run.py)
+│   ├── auth.py          # setup | status | reauth | validate | clear
+│   ├── ask.py           # --question --notebook-url/id --show-browser
+│   ├── list.py          # scrape NotebookLM homepage
+│   ├── add.py           # add notebook to local library
+│   └── download.py      # download Audio/Video Overviews headlessly
 ├── examples/
 │   └── weekly_workflow.py
 ├── requirements.txt
