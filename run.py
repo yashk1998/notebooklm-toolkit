@@ -85,8 +85,14 @@ def main():
     python = _find_python()
     _ensure_deps(python)
 
+    # Ensure the project root is on PYTHONPATH so `from notebooklm.x import y` works
+    # whether the package is pip-installed or not.
+    env = os.environ.copy()
+    existing = env.get("PYTHONPATH", "")
+    env["PYTHONPATH"] = str(PROJECT_DIR) + (os.pathsep + existing if existing else "")
+
     try:
-        result = subprocess.run([str(python), str(script_path)] + script_args)
+        result = subprocess.run([str(python), str(script_path)] + script_args, env=env)
         sys.exit(result.returncode)
     except KeyboardInterrupt:
         print("\n⚠️  Interrupted")
